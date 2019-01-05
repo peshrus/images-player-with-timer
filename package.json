@@ -1,0 +1,46 @@
+{
+  "name": "images-player-with-timer",
+  "version": "1.0.0",
+  "description": "A player of images having a timer",
+  "keywords": [
+    "images player",
+    "image",
+    "image viewer",
+    "react",
+    "component"
+  ],
+  "homepage": "https://github.com/peshrus/images-player-with-timer",
+  "license": "MIT",
+  "author": {
+    "name": "Ruslan Peshchuk"
+  },
+  "main": "build/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/peshrus/images-player-with-timer.git"
+  },
+  "peerDependencies": {
+    "react": "^16.7.0"
+  },
+  "scripts": {
+    "start": "webpack --watch",
+    "build": "webpack --mode development"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "dependencies": {
+    "react": "^16.7.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.2.3",
+    "@babel/core": "^7.2.2",
+    "@babel/plugin-proposal-class-properties": "^7.2.3",
+    "@babel/plugin-proposal-object-rest-spread": "^7.2.0",
+    "@babel/preset-env": "^7.2.3",
+    "@babel/preset-react": "^7.0.0",
+    "babel-loader": "^8.0.5",
+    "webpack": "^4.28.3",
+    "webpack-cli": "^3.2.0"
+  }
+}

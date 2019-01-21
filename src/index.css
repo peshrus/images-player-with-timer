@@ -1,0 +1,102 @@
+.image-holder {
+  filter: opacity(15%) blur(30px);
+  -webkit-filter: opacity(15%) blur(30px);
+}
+
+.meta-info {
+  left: 0;
+  top: 0.7rem;
+  z-index: 1;
+  font-size: 8pt;
+}
+
+.footer {
+  left: 0;
+  bottom: 0;
+}
+
+#dots {
+  bottom: 1rem;
+}
+
+.dot {
+  height: 0.3125rem;
+  width: 0.3125rem;
+  border-radius: 50%;
+}
+
+.dot-viewed {
+  background-color: black !important;
+}
+
+.dot-current {
+  background-color: yellow !important;
+}
+
+#squares {
+  bottom: 4rem;
+}
+
+.square {
+  height: 1.875rem;
+  width: 1.875rem;
+}
+
+.square-current {
+  outline: yellow solid 0.125rem;
+  margin-left: 0.2rem !important;
+  margin-right: 0.2rem !important;
+}
+
+.progress {
+  height: 0.1875rem !important;
+}
+
+.player-controls {
+  height: 3.125rem;
+  background-color: black;
+}
+
+.player-controls svg:hover {
+  cursor: pointer;
+}
+
+.time {
+  font-size: 9pt;
+}
+
+/* Shared Rules */
+
+.image-holder,
+.square {
+  background-size: 100%;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
+.meta-info .close,
+.player-controls a {
+  color: white;
+}
+
+.meta-info a,
+.meta-info .close:hover,
+.player-controls svg:hover,
+.brandText {
+  color: yellow;
+}
+
+.progress,
+.player-controls,
+.dot,
+.square {
+  opacity: 0.7;
+}
+
+.dot,
+.square {
+  background-color: lightgrey;
+  display: inline-block;
+  margin-left: 0.125rem;
+  margin-right: 0.125rem;
+}

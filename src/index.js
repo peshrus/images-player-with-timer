@@ -117,15 +117,13 @@ class ImagesPlayerWithTimer extends Component {
 
   showExtraElements = () => {
     $('#metaInfoWrapper').fadeIn();
-    $('#dots').fadeOut("slow");
-    $('#squares').fadeIn();
+    $('#dots').fadeOut("fast", () => $('#squares').fadeIn());
     $('#controlsWrapper').slideDown();
   };
 
   hideExtraElements = () => {
     $('#metaInfoWrapper').fadeOut();
-    $('#dots').fadeIn("slow");
-    $('#squares').fadeOut();
+    $('#squares').fadeOut("fast", () => $('#dots').fadeIn());
     $('#controlsWrapper').slideUp();
   };
 
@@ -221,10 +219,10 @@ class ImagesPlayerWithTimer extends Component {
             </div>
           </div>
           {image}
-          <div id="dots" className="position-absolute w-100">{dots}</div>
-          <div id="squares" className="position-absolute w-100"
-               style={{display: "none"}}>{squares}</div>
           <div className="footer position-absolute w-100">
+            <div id="squares" className="w-100 mb-3" style={{display: "none"}}>{squares}</div>
+            <div id="dots" className="w-100 mb-3">{dots}</div>
+
             <div className="progress rounded-0">
               <div className="progress-bar" role="progressbar"
                    style={{

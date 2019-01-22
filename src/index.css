@@ -15,10 +15,6 @@
   bottom: 0;
 }
 
-#dots {
-  bottom: 1rem;
-}
-
 .dot {
   height: 0.3125rem;
   width: 0.3125rem;
@@ -31,10 +27,6 @@
 
 .dot-current {
   background-color: yellow !important;
-}
-
-#squares {
-  bottom: 4rem;
 }
 
 .square {

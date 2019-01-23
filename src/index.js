@@ -11,8 +11,15 @@ import "bootstrap/dist/css/bootstrap.min.css"
 import $ from 'jquery';
 import PropTypes from 'prop-types';
 import React, {Component} from "react";
+import {HotKeys} from 'react-hotkeys';
 import Timer from 'tm-timer';
 import "./index.css";
+
+const keyMap = {
+  "prev": "left",
+  "pause": "space",
+  "next": "right"
+};
 
 class ImagesPlayerWithTimer extends Component {
   constructor(props) {
@@ -178,6 +185,8 @@ class ImagesPlayerWithTimer extends Component {
   };
 
   componentDidMount() {
+    this._container.focus();
+
     if (this.props.images.length > 0) {
       this.state.timer.start();
     } else {
@@ -186,74 +195,98 @@ class ImagesPlayerWithTimer extends Component {
   }
 
   render() {
-    const {width, height, backgroundColor, progressBarColor, images, brandText, maxTimeSec} = this.props;
+    const {width, height, backgroundColor, progressBarColor, images, brandText} = this.props;
 
     const image = this.makeImage(images);
     const dots = images.map(this.image2Dot);
     const squares = images.map(this.image2Square);
     const maxTimeMinStr = this.calcTimeLeftStr(this.maxTimeMillis());
+    const handlers = {
+      "prev": () => {
+        this.showHiddenControls();
+        this.prev();
+      },
+      "pause": () => {
+        this.showHiddenControls();
+        this.pausePlay();
+      },
+      "next": () => {
+        this.showHiddenControls();
+        this.next();
+      }
+    };
 
     return (
-        <div className="container-fluid position-relative p-0"
-             style={{
-               width: width,
-               height: height,
-               backgroundColor: backgroundColor,
-             }}
-             onMouseMove={this.showHiddenControls}
-        >
-          <div className="image-holder position-absolute w-100 h-100"
-               style={{backgroundImage: `url(${this.props.images[this.state.currentImage].src})`}}/>
-
-          <div id="metaInfoWrapper"
-               className="meta-info position-absolute w-100"
-               style={{display: "none"}}
+        <HotKeys keyMap={keyMap} handlers={handlers}>
+          <div id="mainContainer"
+               className="container-fluid position-relative p-0"
+               style={{
+                 width: width,
+                 height: height,
+                 backgroundColor: backgroundColor,
+               }}
+               onMouseMove={this.showHiddenControls}
+               ref={(c) => this._container = c}
+               tabIndex={0}
           >
-            <div className="w-100 text-white d-table">
-              <div className="pl-4 d-table-cell align-middle text-left mr-auto">
-                {this.author(images)}
-              </div>
-              <div className="pr-4 d-table-cell align-middle text-right">
-                <CloseRounded className="close"/>
-              </div>
-            </div>
-          </div>
-          {image}
-          <div className="footer position-absolute w-100">
-            <div id="squares" className="w-100 mb-3" style={{display: "none"}}>{squares}</div>
-            <div id="dots" className="w-100 mb-3">{dots}</div>
+            <div className="image-holder position-absolute w-100 h-100"
+                 style={{backgroundImage: `url(${this.props.images[this.state.currentImage].src})`}}/>
 
-            <div className="progress rounded-0">
-              <div className="progress-bar" role="progressbar"
-                   style={{
-                     width: `${this.state.progressBarValue}%`,
-                     backgroundColor: progressBarColor
-                   }}
-                   aria-valuenow={this.state.progressBarValue}
-                   aria-valuemin="0" aria-valuemax="100"/>
-            </div>
-            <div id="controlsWrapper" className="w-100"
-                 style={{display: "none"}}>
-              <div className="player-controls w-100 text-white d-table">
+            <div id="metaInfoWrapper"
+                 className="meta-info position-absolute w-100"
+                 style={{display: "none"}}
+            >
+              <div className="w-100 text-white d-table">
                 <div
-                    className="pl-4 brandText d-table-cell align-middle w-25 text-left font-weight-bold font-italic">{brandText}</div>
-                <div className="d-table-cell align-middle w-50">
-                  <NavigateBeforeRounded onClick={this.prev}/>
-                  {this.state.paused ? <PlayArrowRounded
-                      onClick={this.pausePlay}/> : <PauseRounded
-                      onClick={this.pausePlay}/>}
-                  <NavigateNextRounded onClick={() => this.next(true)}/>
-                  <ReplayRounded onClick={this.replay}/>
-                  <span className="time ml-3"><span
-                      className="timeLeft">{this.state.timeLeftStr}</span> / {maxTimeMinStr}</span>
+                    className="pl-4 d-table-cell align-middle text-left mr-auto">
+                  {this.author(images)}
                 </div>
-                <div className="pr-4 d-table-cell w-25 align-middle text-right">
-                  <StarBorder/>
+                <div className="pr-4 d-table-cell align-middle text-right">
+                  <CloseRounded className="close"/>
+                </div>
+              </div>
+            </div>
+            {image}
+            <div className="footer position-absolute w-100">
+              <div id="squares" className="w-100 mb-3"
+                   style={{display: "none"}}>{squares}</div>
+              <div id="dots" className="w-100 mb-3">{dots}</div>
+
+              <div className="progress rounded-0">
+                <div className="progress-bar" role="progressbar"
+                     style={{
+                       width: `${this.state.progressBarValue}%`,
+                       backgroundColor: progressBarColor
+                     }}
+                     aria-valuenow={this.state.progressBarValue}
+                     aria-valuemin="0" aria-valuemax="100"/>
+              </div>
+              <div id="controlsWrapper" className="w-100"
+                   style={{display: "none"}}
+              >
+                <div className="player-controls w-100 text-white d-table">
+                  <div
+                      className="pl-4 brandText d-table-cell align-middle w-25 text-left font-weight-bold font-italic"
+                  >{brandText}</div>
+                  <div className="d-table-cell align-middle w-50">
+                    <NavigateBeforeRounded onClick={this.prev}/>
+                    {this.state.paused ? <PlayArrowRounded
+                        onClick={this.pausePlay}/> : <PauseRounded
+                        onClick={this.pausePlay}/>}
+                    <NavigateNextRounded onClick={() => this.next(true)}/>
+                    <ReplayRounded onClick={this.replay}/>
+                    <span className="time ml-3"><span
+                        className="timeLeft">{this.state.timeLeftStr}</span> / {maxTimeMinStr}</span>
+                  </div>
+                  <div
+                      className="pr-4 d-table-cell w-25 align-middle text-right">
+                    <StarBorder/>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        </HotKeys>
     );
   }
 }
@@ -269,7 +302,7 @@ ImagesPlayerWithTimer.propTypes = {
   height: PropTypes.string,
   backgroundColor: PropTypes.string,
   progressBarColor: PropTypes.string,
-  brandText: PropTypes.string
+  brandText: PropTypes.string.isRequired
 };
 
 ImagesPlayerWithTimer.defaultProps = {

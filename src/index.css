@@ -1,3 +1,7 @@
+#mainContainer:focus {
+  outline: 0;
+}
+
 .image-holder {
   filter: opacity(15%) blur(30px);
   -webkit-filter: opacity(15%) blur(30px);

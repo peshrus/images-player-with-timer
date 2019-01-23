@@ -1,18 +1,11 @@
-import {
-  CloseRounded,
-  NavigateBeforeRounded,
-  NavigateNextRounded,
-  PauseRounded,
-  PlayArrowRounded,
-  ReplayRounded,
-  StarBorder
-} from "@material-ui/icons";
 import "bootstrap/dist/css/bootstrap.min.css"
 import $ from 'jquery';
 import PropTypes from 'prop-types';
 import React, {Component} from "react";
 import {HotKeys} from 'react-hotkeys';
 import Timer from 'tm-timer';
+import Footer from "./components/Footer";
+import MetaInfoWrapper from "./components/MetaInfoWrapper";
 import "./index.css";
 
 const keyMap = {
@@ -25,12 +18,13 @@ class ImagesPlayerWithTimer extends Component {
   constructor(props) {
     super(props);
 
-    const timer = new Timer(this.maxTimeMillis(), this.next);
+    const timer = new Timer(this.maxTimeMillis(), () => this.next(false));
+    this.maxTimeMinStr = this.calcTimeLeftStr(this.maxTimeMillis());
 
     this.state = {
       currentImage: 0,
       timer: timer,
-      timeLeftStr: this.calcTimeLeftStr(this.maxTimeMillis()),
+      timeLeftStr: this.maxTimeMinStr,
       progressBarValue: 0,
       paused: false,
       cycleFinished: false,
@@ -46,6 +40,11 @@ class ImagesPlayerWithTimer extends Component {
       const progressBarValue = 100 - timeLeft / (this.props.maxTimeSec * 10);
       this.setState({progressBarValue: progressBarValue});
     });
+
+    this.metaInfoWrapper = React.createRef();
+    this.dots = React.createRef();
+    this.squares = React.createRef();
+    this.controlsWrapper = React.createRef();
   }
 
   maxTimeMillis = () => {
@@ -62,9 +61,12 @@ class ImagesPlayerWithTimer extends Component {
 
   restartTimer = (restartCondition = true) => {
     if (restartCondition) {
-      this.state.timer.stop();
-      this.state.timer.reset();
-      this.state.timer.start();
+      const timer = this.state.timer;
+
+      timer.stop();
+      timer.reset();
+      timer.start();
+
       this.setState({paused: false});
     }
   };
@@ -93,7 +95,7 @@ class ImagesPlayerWithTimer extends Component {
     }
   };
 
-  next = (manualCall = false) => {
+  next = (manualCall = true) => {
     const newCurrentImage = Math.min(this.state.currentImage + 1,
         this.props.images.length - 1);
     const lastImage = newCurrentImage === this.state.currentImage;
@@ -123,15 +125,17 @@ class ImagesPlayerWithTimer extends Component {
   };
 
   showExtraElements = () => {
-    $('#metaInfoWrapper').fadeIn();
-    $('#dots').fadeOut("fast", () => $('#squares').fadeIn());
-    $('#controlsWrapper').slideDown();
+    $(this.metaInfoWrapper.current).fadeIn();
+    $(this.dots.current).fadeOut("fast",
+        () => $(this.squares.current).fadeIn());
+    $(this.controlsWrapper.current).slideDown();
   };
 
   hideExtraElements = () => {
-    $('#metaInfoWrapper').fadeOut();
-    $('#squares').fadeOut("fast", () => $('#dots').fadeIn());
-    $('#controlsWrapper').slideUp();
+    $(this.metaInfoWrapper.current).fadeOut();
+    $(this.squares.current).fadeOut("fast",
+        () => $(this.dots.current).fadeIn());
+    $(this.controlsWrapper.current).slideUp();
   };
 
   showHiddenControls = () => {
@@ -144,43 +148,18 @@ class ImagesPlayerWithTimer extends Component {
   };
 
   makeImage = (images) => {
-    return images.length > 0 ?
-        <img className="position-relative"
-             src={images[this.state.currentImage].src} alt="" height="100%"/> :
-        <div className="position-relative">No Images</div>
+    const src = images[this.state.currentImage].src;
+
+    return <img className="position-relative" src={src} alt="" height="100%"/>;
   };
 
-  image2Dot = (image, index) => {
-    const id = "dot-" + index;
-    const currentImage = this.state.currentImage;
-    const viewed = (index < currentImage ? "dot-viewed" : "");
-    const currentOrViewed = (index === currentImage ? "dot-current" : viewed);
-
-    return <span id={id} key={id} className={"dot " + currentOrViewed}/>;
-  };
-
-  image2Square = (image, index) => {
-    const id = "square-" + index;
-    const currentImage = this.state.currentImage;
-    const current = (index === currentImage ? "square-current" : "");
-    const backgroundImage = index <= currentImage
-        ? `url(${this.props.images[index].src})` : "";
-    const cursor = index < currentImage ? "pointer" : "";
-    const onClick = index < currentImage ? this.squareClickHandler
-        : () => false;
-
-    return <span id={id} key={id} className={"square " + current}
-                 style={{backgroundImage: backgroundImage, cursor: cursor}}
-                 onClick={onClick}/>;
-  };
-
-  author = (images) => {
+  makeAuthor = (images) => {
     const image = images[this.state.currentImage];
-    const authorAndLinkSpecified = image.savedFrom && image.author;
+    const authorAndLinkSpecified = image.savedFrom && image.makeAuthor;
 
     return authorAndLinkSpecified ?
         <React.Fragment>Author <a href={image.savedFrom}
-                                  target="_blank">{image.author}</a></React.Fragment>
+                                  target="_blank">{image.makeAuthor}</a></React.Fragment>
         : <React.Fragment/>
   };
 
@@ -195,12 +174,8 @@ class ImagesPlayerWithTimer extends Component {
   }
 
   render() {
-    const {width, height, backgroundColor, progressBarColor, images, brandText} = this.props;
-
+    const {images} = this.props;
     const image = this.makeImage(images);
-    const dots = images.map(this.image2Dot);
-    const squares = images.map(this.image2Square);
-    const maxTimeMinStr = this.calcTimeLeftStr(this.maxTimeMillis());
     const handlers = {
       "prev": () => {
         this.showHiddenControls();
@@ -218,73 +193,38 @@ class ImagesPlayerWithTimer extends Component {
 
     return (
         <HotKeys keyMap={keyMap} handlers={handlers}>
-          <div id="mainContainer"
-               className="container-fluid position-relative p-0"
+          <div className="images-player container-fluid position-relative p-0"
                style={{
-                 width: width,
-                 height: height,
-                 backgroundColor: backgroundColor,
+                 width: this.props.width,
+                 height: this.props.height,
+                 backgroundColor: this.props.backgroundColor,
                }}
                onMouseMove={this.showHiddenControls}
                ref={(c) => this._container = c}
                tabIndex={0}
           >
             <div className="image-holder position-absolute w-100 h-100"
-                 style={{backgroundImage: `url(${this.props.images[this.state.currentImage].src})`}}/>
+                 style={{backgroundImage: `url(${images[this.state.currentImage].src})`}}/>
 
-            <div id="metaInfoWrapper"
-                 className="meta-info position-absolute w-100"
-                 style={{display: "none"}}
-            >
-              <div className="w-100 text-white d-table">
-                <div
-                    className="pl-4 d-table-cell align-middle text-left mr-auto">
-                  {this.author(images)}
-                </div>
-                <div className="pr-4 d-table-cell align-middle text-right">
-                  <CloseRounded className="close"/>
-                </div>
-              </div>
-            </div>
+            <MetaInfoWrapper refSpec={this.metaInfoWrapper}
+                             author={this.makeAuthor(images)}/>
             {image}
-            <div className="footer position-absolute w-100">
-              <div id="squares" className="w-100 mb-3"
-                   style={{display: "none"}}>{squares}</div>
-              <div id="dots" className="w-100 mb-3">{dots}</div>
-
-              <div className="progress rounded-0">
-                <div className="progress-bar" role="progressbar"
-                     style={{
-                       width: `${this.state.progressBarValue}%`,
-                       backgroundColor: progressBarColor
-                     }}
-                     aria-valuenow={this.state.progressBarValue}
-                     aria-valuemin="0" aria-valuemax="100"/>
-              </div>
-              <div id="controlsWrapper" className="w-100"
-                   style={{display: "none"}}
-              >
-                <div className="player-controls w-100 text-white d-table">
-                  <div
-                      className="pl-4 brandText d-table-cell align-middle w-25 text-left font-weight-bold font-italic"
-                  >{brandText}</div>
-                  <div className="d-table-cell align-middle w-50">
-                    <NavigateBeforeRounded onClick={this.prev}/>
-                    {this.state.paused ? <PlayArrowRounded
-                        onClick={this.pausePlay}/> : <PauseRounded
-                        onClick={this.pausePlay}/>}
-                    <NavigateNextRounded onClick={() => this.next(true)}/>
-                    <ReplayRounded onClick={this.replay}/>
-                    <span className="time ml-3"><span
-                        className="timeLeft">{this.state.timeLeftStr}</span> / {maxTimeMinStr}</span>
-                  </div>
-                  <div
-                      className="pr-4 d-table-cell w-25 align-middle text-right">
-                    <StarBorder/>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <Footer images={images}
+                    currentImage={this.state.currentImage}
+                    progressBarColor={this.props.progressBarColor}
+                    progressBarValue={this.state.progressBarValue}
+                    brandText={this.props.brandText}
+                    paused={this.state.paused}
+                    timeLeftStr={this.state.timeLeftStr}
+                    maxTimeMinStr={this.maxTimeMinStr}
+                    squareClickHandler={this.squareClickHandler}
+                    prev={this.prev}
+                    pausePlay={this.pausePlay}
+                    next={this.next}
+                    replay={this.replay}
+                    dotsRefSpec={this.dots}
+                    squaresRefSpec={this.squares}
+                    controlsWrapperRefSpec={this.controlsWrapper}/>
           </div>
         </HotKeys>
     );

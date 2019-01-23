@@ -1,4 +1,4 @@
-#mainContainer:focus {
+.images-player:focus {
   outline: 0;
 }
 
@@ -7,7 +7,7 @@
   -webkit-filter: opacity(15%) blur(30px);
 }
 
-.meta-info {
+.meta-info-wrapper {
   left: 0;
   top: 0.7rem;
   z-index: 1;
@@ -70,15 +70,15 @@
   background-repeat: no-repeat;
 }
 
-.meta-info .close,
+.meta-info-wrapper .close,
 .player-controls a {
   color: white;
 }
 
-.meta-info a,
-.meta-info .close:hover,
+.meta-info-wrapper a,
+.meta-info-wrapper .close:hover,
 .player-controls svg:hover,
-.brandText {
+.brand-text {
   color: yellow;
 }
 

@@ -25,21 +25,14 @@
   border-radius: 50%;
 }
 
-.dot-viewed {
-  background-color: black !important;
-}
-
-.dot-current {
-  background-color: yellow !important;
-}
-
 .square {
   height: 1.875rem;
   width: 1.875rem;
 }
 
 .square-current {
-  outline: yellow solid 0.125rem;
+  outline-style: solid;
+  outline-width: 0.125rem;
   margin-left: 0.2rem !important;
   margin-right: 0.2rem !important;
 }
@@ -50,11 +43,6 @@
 
 .player-controls {
   height: 3.125rem;
-  background-color: black;
-}
-
-.player-controls svg:hover {
-  cursor: pointer;
 }
 
 .time {
@@ -70,16 +58,16 @@
   background-repeat: no-repeat;
 }
 
-.meta-info-wrapper .close,
-.player-controls a {
-  color: white;
+.meta-info-wrapper svg:hover,
+.player-controls svg:hover {
+  cursor: pointer;
 }
 
-.meta-info-wrapper a,
-.meta-info-wrapper .close:hover,
-.player-controls svg:hover,
-.brand-text {
-  color: yellow;
+.dot,
+.square {
+  display: inline-block;
+  margin-left: 0.125rem;
+  margin-right: 0.125rem;
 }
 
 .progress,
@@ -87,12 +75,4 @@
 .dot,
 .square {
   opacity: 0.7;
-}
-
-.dot,
-.square {
-  background-color: lightgrey;
-  display: inline-block;
-  margin-left: 0.125rem;
-  margin-right: 0.125rem;
 }

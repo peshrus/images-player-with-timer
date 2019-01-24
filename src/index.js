@@ -3,11 +3,11 @@ import $ from 'jquery';
 import PropTypes from 'prop-types';
 import React, {Component} from "react";
 import {HotKeys} from 'react-hotkeys';
-import Timer from 'tm-timer';
 import Footer from "./components/Footer";
 import MetaInfoWrapper from "./components/MetaInfoWrapper";
 import "./index.css";
 
+const hiddenControlsShowTimeout = 3000;
 const keyMap = {
   "prev": "left",
   "pause": "space",
@@ -18,110 +18,20 @@ class ImagesPlayerWithTimer extends Component {
   constructor(props) {
     super(props);
 
-    const timer = new Timer(this.maxTimeMillis(), () => this.next(false));
-    this.maxTimeMinStr = this.calcTimeLeftStr(this.maxTimeMillis());
-
     this.state = {
-      currentImage: 0,
-      timer: timer,
-      timeLeftStr: this.maxTimeMinStr,
-      progressBarValue: 0,
-      paused: false,
-      cycleFinished: false,
-      timeout: null
+      currentImageNum: 0,
+      extraElementsHidingTimeout: null,
     };
 
-    timer.onTick((isBigTick, timeLeft) => {
-      if (isBigTick) {
-        const timeLeftStr = this.calcTimeLeftStr(timeLeft);
-        this.setState({timeLeftStr: timeLeftStr});
-      }
-
-      const progressBarValue = 100 - timeLeft / (this.props.maxTimeSec * 10);
-      this.setState({progressBarValue: progressBarValue});
-    });
-
+    this.footer = React.createRef();
     this.metaInfoWrapper = React.createRef();
     this.dots = React.createRef();
     this.squares = React.createRef();
     this.controlsWrapper = React.createRef();
   }
 
-  maxTimeMillis = () => {
-    return this.props.maxTimeSec * 1000;
-  };
-
-  calcTimeLeftStr = (timeLeft) => {
-    const minutesLeft = Math.floor(timeLeft / 60000);
-    const secondsLeftNum = Math.floor(timeLeft % 60000 / 1000);
-    const secondsLeftStr = secondsLeftNum.toString().padStart(2, "0");
-
-    return `${minutesLeft}:${secondsLeftStr}`;
-  };
-
-  restartTimer = (restartCondition = true) => {
-    if (restartCondition) {
-      const timer = this.state.timer;
-
-      timer.stop();
-      timer.reset();
-      timer.start();
-
-      this.setState({paused: false});
-    }
-  };
-
-  prev = () => {
-    const newCurrentImage = Math.max(this.state.currentImage - 1, 0);
-    let firstImage = newCurrentImage === this.state.currentImage;
-
-    this.restartTimer(!firstImage);
-    this.setState({currentImage: newCurrentImage, cycleFinished: false});
-  };
-
-  pausePlay = () => {
-    if (!this.state.cycleFinished) {
-      const timer = this.state.timer;
-
-      if (timer.isRunning) {
-        timer.stop();
-        this.setState({paused: true});
-      } else {
-        timer.start();
-        this.setState({paused: false});
-      }
-    } else {
-      console.log("pausePlay: The Cycle Finished");
-    }
-  };
-
-  next = (manualCall = true) => {
-    const newCurrentImage = Math.min(this.state.currentImage + 1,
-        this.props.images.length - 1);
-    const lastImage = newCurrentImage === this.state.currentImage;
-
-    if (!manualCall || !lastImage) {
-      this.restartTimer(!lastImage);
-      this.setState({currentImage: newCurrentImage, cycleFinished: lastImage});
-    }
-  };
-
-  replay = () => {
-    this.setState({currentImage: 0, cycleFinished: false});
-    this.restartTimer();
-  };
-
-  squareClickHandler = (event) => {
-    if (event) {
-      const newCurrentImage = parseInt(event.target.id.replace(/^square-/g, ""),
-          10);
-      const lastImage = newCurrentImage === this.state.currentImage;
-
-      this.restartTimer(!lastImage);
-      this.setState({currentImage: newCurrentImage, cycleFinished: lastImage});
-    } else {
-      console.log("squareClickHandler: No Event");
-    }
+  setCurrentImageNum = (newCurrentImageNum) => {
+    this.setState({currentImageNum: newCurrentImageNum});
   };
 
   showExtraElements = () => {
@@ -139,55 +49,42 @@ class ImagesPlayerWithTimer extends Component {
   };
 
   showHiddenControls = () => {
-    clearTimeout(this.state.timeout);
+    clearTimeout(this.state.extraElementsHidingTimeout);
 
     this.showExtraElements();
     this.setState({
-      timeout: setTimeout(this.hideExtraElements, 2000)
+      extraElementsHidingTimeout: setTimeout(this.hideExtraElements,
+          hiddenControlsShowTimeout)
     });
   };
 
-  makeImage = (images) => {
-    const src = images[this.state.currentImage].src;
-
-    return <img className="position-relative" src={src} alt="" height="100%"/>;
-  };
-
-  makeAuthor = (images) => {
-    const image = images[this.state.currentImage];
-    const authorAndLinkSpecified = image.savedFrom && image.makeAuthor;
-
-    return authorAndLinkSpecified ?
-        <React.Fragment>Author <a href={image.savedFrom}
-                                  target="_blank">{image.makeAuthor}</a></React.Fragment>
-        : <React.Fragment/>
+  makeHoverStyle = (cursorOverElement) => {
+    return {
+      color: cursorOverElement ?
+          this.props.accentColor :
+          this.props.secondaryColor
+    };
   };
 
   componentDidMount() {
     this._container.focus();
-
-    if (this.props.images.length > 0) {
-      this.state.timer.start();
-    } else {
-      console.log("componentDidMount: No Images");
-    }
   }
 
   render() {
     const {images} = this.props;
-    const image = this.makeImage(images);
+    const currentImage = images[this.state.currentImageNum];
     const handlers = {
       "prev": () => {
         this.showHiddenControls();
-        this.prev();
+        this.footer.current.goPrev();
       },
       "pause": () => {
         this.showHiddenControls();
-        this.pausePlay();
+        this.footer.current.pausePlay();
       },
       "next": () => {
         this.showHiddenControls();
-        this.next();
+        this.footer.current.goNext();
       }
     };
 
@@ -197,34 +94,40 @@ class ImagesPlayerWithTimer extends Component {
                style={{
                  width: this.props.width,
                  height: this.props.height,
-                 backgroundColor: this.props.backgroundColor,
+                 backgroundColor: this.props.primaryColor,
                }}
                onMouseMove={this.showHiddenControls}
                ref={(c) => this._container = c}
                tabIndex={0}
           >
             <div className="image-holder position-absolute w-100 h-100"
-                 style={{backgroundImage: `url(${images[this.state.currentImage].src})`}}/>
+                 style={{backgroundImage: `url(${currentImage.src})`}}/>
 
             <MetaInfoWrapper refSpec={this.metaInfoWrapper}
-                             author={this.makeAuthor(images)}/>
-            {image}
-            <Footer images={images}
-                    currentImage={this.state.currentImage}
-                    progressBarColor={this.props.progressBarColor}
-                    progressBarValue={this.state.progressBarValue}
+                             image={currentImage}
+                             onCloseClick={this.props.onCloseClick}
+                             secondaryColor={this.props.secondaryColor}
+                             accentColor={this.props.accentColor}
+                             makeHoverStyle={this.makeHoverStyle}/>
+            <img className="position-relative h-100"
+                 src={currentImage.src}
+                 alt=""/>
+            <Footer ref={this.footer}
+                    images={images}
+                    currentImageNum={this.state.currentImageNum}
+                    primaryColor={this.props.primaryColor}
+                    secondaryColor={this.props.secondaryColor}
+                    accentColor={this.props.accentColor}
+                    inactiveColor={this.props.inactiveColor}
                     brandText={this.props.brandText}
-                    paused={this.state.paused}
-                    timeLeftStr={this.state.timeLeftStr}
-                    maxTimeMinStr={this.maxTimeMinStr}
-                    squareClickHandler={this.squareClickHandler}
-                    prev={this.prev}
-                    pausePlay={this.pausePlay}
-                    next={this.next}
-                    replay={this.replay}
                     dotsRefSpec={this.dots}
                     squaresRefSpec={this.squares}
-                    controlsWrapperRefSpec={this.controlsWrapper}/>
+                    controlsWrapperRefSpec={this.controlsWrapper}
+                    maxTimeSec={this.props.maxTimeSec}
+                    setCurrentImageNum={this.setCurrentImageNum}
+                    showHiddenControls={this.showHiddenControls}
+                    onStarClick={this.props.onStarClick}
+                    makeHoverStyle={this.makeHoverStyle}/>
           </div>
         </HotKeys>
     );
@@ -240,17 +143,25 @@ ImagesPlayerWithTimer.propTypes = {
   maxTimeSec: PropTypes.number.isRequired,
   width: PropTypes.string,
   height: PropTypes.string,
-  backgroundColor: PropTypes.string,
-  progressBarColor: PropTypes.string,
-  brandText: PropTypes.string.isRequired
+  primaryColor: PropTypes.string,
+  secondaryColor: PropTypes.string,
+  accentColor: PropTypes.string,
+  inactiveColor: PropTypes.string,
+  brandText: PropTypes.string.isRequired,
+  onCloseClick: PropTypes.func.isRequired,
+  onStarClick: PropTypes.func.isRequired,
 };
 
 ImagesPlayerWithTimer.defaultProps = {
   maxTimeSec: 120,
   width: "100vw",
   height: "100vh",
-  backgroundColor: "black",
-  progressBarColor: "yellow"
+  primaryColor: "black",
+  secondaryColor: "white",
+  accentColor: "yellow",
+  inactiveColor: "lightgrey",
+  onCloseClick: () => console.log("Close Clicked"),
+  onStarClick: () => console.log("Star Clicked"),
 };
 
 export default ImagesPlayerWithTimer;
